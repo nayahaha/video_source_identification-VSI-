@@ -17,7 +17,7 @@ def H264_sample_description(sample_data, sample_size, atom_info):
     Vertiresolution = sample_data[32:36]
     Vertiresolution = bytes.hex(Vertiresolution)
     reserved3 = struct.unpack('>I', sample_data[36:40])[0]
-    frame_count = struct.unpack('>H', sample_data[40:42])[0]    # sample 당 frame 개수
+    frame_count = struct.unpack('>H', sample_data[40:42])[0]
     compressor_name = struct.unpack('>32s', sample_data[42:74])[0]
     compressor_name = compressor_name.decode('utf-8')
     depth = struct.unpack('>H', sample_data[74:76])[0]
@@ -38,7 +38,7 @@ def H264_sample_description(sample_data, sample_size, atom_info):
     atom_info['depth'] = depth
     atom_info['pre_defined3'] = pre_defined3
 
-    size = (sample_size-8) - 78 #avc1 atom header size(8bytes)만큼 빼기
+    size = (sample_size-8) - 78
     sub_data = sample_data[78:78+size]
     offset = 0
     while size > 8:  # Atom header size is 8 bytes (size + type)
@@ -66,12 +66,6 @@ def H264_sample_description(sample_data, sample_size, atom_info):
         offset += atom_size
         size -= atom_size
 
-    # temp = sample_size - 8 - (86+avcc_boxSize-8)
-    # if temp > 0:
-    #     sub_boxSize, subType = struct.unpack('>I4s', sample_data[86+avcc_boxSize-8:86+avcc_boxSize-4])
-    #     if subType == 'pasp':
-    #         pasp_info['type']=subType
-    #         pasp_info['size'] = sub_boxSize
     
 def  sample_description(sample_data, atom_info):
     esds_info = {}
@@ -123,14 +117,14 @@ def parse_avcc(avcc_data, atom_info):
     for _ in range(numOfSPS):
         SPS_length = struct.unpack('>h', avcc_data[6:8])[0]
         SPS_unit = avcc_data[8:8+SPS_length]    # type: byte
-        # SPS_unit = bytes.hex(SPS_unit)
+
     
     SPSend = 8+SPS_length
     numOfPPS = struct.unpack('>b', avcc_data[SPSend:SPSend+1])[0]
     for _ in range(numOfPPS):
         PPS_length = struct.unpack('>h', avcc_data[SPSend+1:SPSend+3])[0]
         PPS_unit = avcc_data[SPSend+3:SPSend+3+PPS_length]
-        # PPS_unit = bytes.hex(PPS_unit)
+
     
 
     atom_info['configuration_version'] = configuration_version
@@ -187,7 +181,7 @@ def parse_esds(esds_data, atom_info):
         maxBitrate = round(temp, 1)
         temp = avgBitrate * 0.001
         avgBitrate = (temp, 1)
-    # ...
+
     atom_info['max_bitrate'] = maxBitrate
     atom_info['avg_bitrate'] = avgBitrate
 
@@ -205,7 +199,7 @@ def hevc_sample_description(sample_data, atom_info):
     Vertiresolution = sample_data[32:36]
     Vertiresolution = bytes.hex(Vertiresolution)
     reserved3 = struct.unpack('>I', sample_data[36:40])[0]
-    frame_count = struct.unpack('>H', sample_data[40:42])[0]    # sample 당 frame 개수
+    frame_count = struct.unpack('>H', sample_data[40:42])[0]
     compressor_name = struct.unpack('>32s', sample_data[42:74])[0]
     compressor_name = compressor_name.decode('utf-8')
     depth = struct.unpack('>H', sample_data[74:76])[0]
@@ -378,7 +372,7 @@ def parse_hvcc(hvcc_data, atom_info):
             #nalUnit = bytes.hex(nalUnit)
             arrays_info[f'nalUnitLength_{i}'] = nalUnitLength
             arrays_info[f'{name}'] = nalUnit
-            count = 5+nalUnitLength+count   # 5는 nalUnitType(1) + numNalus(2) + nalUnitLength(2)
+            count = 5+nalUnitLength+count
         
     atom_info['nalUnits'] = arrays_info
 

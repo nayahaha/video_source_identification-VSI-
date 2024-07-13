@@ -8,7 +8,6 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from keras_preprocessing.sequence import pad_sequences
 from sklearn.decomposition import PCA
 
-# 직접 만든 모듈
 from video.ftyp import *
 from video.moof import *
 from video.moov import *
@@ -22,7 +21,6 @@ codec_id = []
 
 
 def preprocessing(df, features):
-    # 긴 데이터 프레임 생략 없이 출력 설정
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.expand_frame_repr', False)
@@ -33,15 +31,16 @@ def preprocessing(df, features):
     Video_Format_settings = []
     Video_Title = []
     BOX_Sequence = []
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    with open('.\\pickle\\tokenizer_ExtraTrees.pkl', 'rb') as handle:
+    with open(f'{BASE_DIR}\\pickle\\tokenizer_ExtraTrees.pkl', 'rb') as handle:
         tokenizer = pickle.load(handle)
     # print("Loaded tokenizer with word index", tokenizer.word_index)
 
-    with open('.\\pickle\\pca_dict_ExtraTrees.pkl', 'rb') as pca_file:
+    with open(f'{BASE_DIR}\\pickle\\pca_dict_ExtraTrees.pkl', 'rb') as pca_file:
         pca_dict = pickle.load(pca_file)
 
-    with open('.\\pickle\\feature_sizes_ExtraTrees.pkl', 'rb') as f:
+    with open(f'{BASE_DIR}\\pickle\\feature_sizes_ExtraTrees.pkl', 'rb') as f:
         feature_sizes = pickle.load(f)
 
     for feature in features:
@@ -80,29 +79,24 @@ def preprocessing(df, features):
         globals()[feature + "_df"] = pd.DataFrame(temp_X)
 
         temp = eval(feature + "_df")
-        # 특성 수 맞추기
         expected_features = feature_sizes[feature]
         actual_features = temp.shape[1]
 
         if actual_features < expected_features:
-            # 필요한 경우 열 추가 (앞쪽에 열 추가)
             temp = np.pad(temp, ((0, 0), (expected_features - actual_features, 0)), 'constant')
-            # if feature == 'Video_Format_profile':
-            #     print(temp)
         elif actual_features > expected_features:
-            # 필요한 경우 열 삭제
             temp = temp[:, :expected_features]
 
         pca = pca_dict[feature]
 
         globals()[feature + '_transform'] = pca.transform(temp)
     x_data = pd.DataFrame(df, columns=['Video_Bitrate', 'Video_Width(Pixels)', 'Audio_Bitrate', 'Video_Height(Pixels)',
-                                       'Video_ID', 'Overall_bitrate', 'Video_Matrix_coefficients'])  # 수치형 데이터 피처
+                                       'Video_ID', 'Overall_bitrate', 'Video_Matrix_coefficients'])
     for i in features:
-        temp = pd.DataFrame(eval(i + "_transform"))  # PCA 적용할 때
+        temp = pd.DataFrame(eval(i + "_transform"))
         for data in temp:
             x_data.insert(data, i + str(temp.columns[data]), temp[data])
-    # sys.stdout = open(f'classification_result(dataset)_messenger,snapchat.txt', 'a')
+
     print(x_data)
     return x_data
 
@@ -134,7 +128,8 @@ def main(file_path):
                 'Video_Title', 'Format_profile']
     LABELS = ['Band', 'Discord', 'Kakaotalk', 'Line', 'Messenger', 'QQ', 'Session', 'Signal', 'Slack', 'Snapchat',
               'Teams', 'Telegram', 'viber', 'wechat', 'whatsapp', 'wire']
-    model_path = '.\\pickle\\classifier_model_ExtraTrees.pkl'
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    model_path = f'{BASE_DIR}\\pickle\\classifier_model_ExtraTrees.pkl'
     model = joblib.load(model_path)
     video_path = file_path
     file_name = os.path.basename(video_path)
@@ -145,7 +140,6 @@ def main(file_path):
 
     predictions = classify_source(x_data, model)
 
-    # 예측 결과 출력
     for idx, prediction in enumerate(predictions):
         source_class = LABELS[prediction]
         print(f"{file_name} -> Video predicted class: {source_class}")

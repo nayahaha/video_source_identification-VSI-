@@ -1,11 +1,13 @@
 # *Video source identifier*
-
+ 
 *Video source identifier* is an automated tool that identifies the source application of a shared video from an instant messaging application.
 
+**This tool is a project submitted to DFRWS APAC 2024. It will be publicly available later.**
+ 
 # Dataset
-
+ 
 ### 16 instant messaging applications
-
+ 
 | Application                     | Version (Android / iOS)
 |---------------------------------|----------------------
 | Band                            | 10.2.1 / 10.2.1      
@@ -24,22 +26,24 @@
 | WeChat                          | 8.0.30 / 8.0.37
 | WhatsApp                        | 2.23.8.76 / 23.20.79
 | Wire                            | 3.82.39 / 3.109
-
+ 
   
-The video dataset shared through 16 instant messaging applications is available for download via a Google Drive link.
+**The video dataset** shared through 16 instant messaging applications is available for download via a Google Drive link.
 
-https://drive.google.com/drive/folders/1oZGpSwG9aU4AV5yZoroOY64bMgv2LsMk?usp=sharing
+**The release is available** via a Google Drive link too.
+ 
+link -> https://drive.google.com/drive/folders/1oZGpSwG9aU4AV5yZoroOY64bMgv2LsMk?usp=sharing
 
 # Usage
 1. Click select button
 2. Select the path to the folder where the video you want to analyze is located
 3. Click analyze button
-
+ 
 # Dependency
 - Python v3.8.1
 - scikit-learn v1.2.2
 - TensorFlow v2.9.1
 - Keras v2.9.0
 - etc.
-
+ 
 ※ Refer to the requirement.txt

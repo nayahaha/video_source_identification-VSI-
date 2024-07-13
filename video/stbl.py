@@ -16,8 +16,6 @@ def parse_stbl_atom(stbl_data, stbl_info, track_id):
     while offset < len(stbl_data):
         stbl_subAtom_size, stbl_subAtom_type = struct.unpack('>I4s', stbl_data[offset:offset+8])
         stbl_subAtom_type = stbl_subAtom_type.decode('utf-8')
-        #stbl_subAtom_type = f"{stbl_subAtom_type}_{track_id}"
-        #atom_info[f'{stbl_subAtom_type}_{track_id}'] = stbl_subAtom_type
 
         if stbl_subAtom_type == 'stsd':
             stbl_subAtom_type = f"{stbl_subAtom_type}_{track_id}"
@@ -119,7 +117,7 @@ def parse_stsd_atom(stsd_data, atom_info, track_id): # sample Description
         atom_info[sample_info['type']]=sample_info
         offset += entry_size
 
-def parse_stts_atom(stts_data, atom_info, track_id): # Time To Sample: 샘플의 시간 정보
+def parse_stts_atom(stts_data, atom_info, track_id):
     version = struct.unpack('>B', stts_data[0:1])[0]
     flags = struct.unpack('>3B', stts_data[1:4])
     entry_count = struct.unpack('>I', stts_data[4:8])[0]
@@ -135,7 +133,7 @@ def parse_stts_atom(stts_data, atom_info, track_id): # Time To Sample: 샘플의
         atom_info[f'sample_delta[{i}]_{track_id}'] = sample_delta
 
         offset += 8
-def parse_stss_atom(stss_data, atom_info, track_id): # Sync Sample Table - 각 entry는 Sync Sample의 number
+def parse_stss_atom(stss_data, atom_info, track_id):
     version = struct.unpack('>B', stss_data[0:1])[0]
     flags = struct.unpack('>3B', stss_data[1:4])
     entry_count = struct.unpack('>I', stss_data[4:8])[0]
@@ -149,7 +147,7 @@ def parse_stss_atom(stss_data, atom_info, track_id): # Sync Sample Table - 각 e
         atom_info[f'sample_number[{i}]_{track_id}'] = sample
         offset += 4
 
-def parse_ctts_atom(ctts_data, atom_info, track_id): # Composition Offset
+def parse_ctts_atom(ctts_data, atom_info, track_id):
     version = struct.unpack('>B', ctts_data[0:1])[0]
     flags = struct.unpack('>3B', ctts_data[1:4])
     entry_count = struct.unpack('>I', ctts_data[4:8])[0]
@@ -165,7 +163,7 @@ def parse_ctts_atom(ctts_data, atom_info, track_id): # Composition Offset
         atom_info[f'sample_offset[{i}]_{track_id}'] = sample_offset
         offset += 8
 
-def parse_stsc_atom(stsc_data, atom_info, track_id): # Sample To Chunk (chunk: sample의 집합체) -> 한 개의 chunk에 여러 개의 sample이 존재할 수 있음
+def parse_stsc_atom(stsc_data, atom_info, track_id):
     version = struct.unpack('>B', stsc_data[0:1])[0]
     flags = struct.unpack('>3B', stsc_data[1:4])
     entry_count = struct.unpack('>I', stsc_data[4:8])[0]
@@ -176,12 +174,12 @@ def parse_stsc_atom(stsc_data, atom_info, track_id): # Sample To Chunk (chunk: s
     offset = 8
     for i in range(entry_count):
         first_chunk, samples_per_chunk, sample_description_index = struct.unpack('>3I', stsc_data[offset:offset+12])
-        atom_info[f'first_chunk[{i}]_{track_id}'] = first_chunk   # 연속된 chunk 중 첫 번째 chunk의 index
-        atom_info[f'samples_per_chunk[{i}]_{track_id}'] = samples_per_chunk   # chunk 당 sample의 개수
+        atom_info[f'first_chunk[{i}]_{track_id}'] = first_chunk
+        atom_info[f'samples_per_chunk[{i}]_{track_id}'] = samples_per_chunk
         atom_info[f'sample_description_index[{i}]_{track_id}'] = sample_description_index
 
         offset += 12
-def parse_stsz_atom(stsz_data, atom_info, track_id): # Sample Size - 각 entry는 각 sample의 크기
+def parse_stsz_atom(stsz_data, atom_info, track_id):
     version = struct.unpack('>B', stsz_data[0:1])[0]
     flags = struct.unpack('>3B', stsz_data[1:4])
     sample_size = struct.unpack('>I', stsz_data[4:8])[0]
@@ -197,7 +195,7 @@ def parse_stsz_atom(stsz_data, atom_info, track_id): # Sample Size - 각 entry�
             sample = struct.unpack('>I', stsz_data[offset:offset+4])[0]
             atom_info[f'entry_size[{i}]_{track_id}'] = sample
             offset += 4
-def parse_stco_atom(stco_data, atom_info, track_id): # Chunk Offset
+def parse_stco_atom(stco_data, atom_info, track_id):
     version = struct.unpack('>B', stco_data[0:1])[0]
     flags = struct.unpack('>3B', stco_data[1:4])
     entry_count = struct.unpack('>I', stco_data[4:8])[0]
@@ -211,7 +209,7 @@ def parse_stco_atom(stco_data, atom_info, track_id): # Chunk Offset
         chunk_offset = struct.unpack('>I', stco_data[offset:offset+4])[0]
         atom_info[f'chunk offset[{i}]_{track_id}'] = chunk_offset
         offset += 4
-def parse_sgpd_atom(sgpd_data, atom_info, track_id): # Sample Group Description(샘플 그룹에 대한 정보)
+def parse_sgpd_atom(sgpd_data, atom_info, track_id):
     version = struct.unpack('>B', sgpd_data[0:1])[0]
     flags = struct.unpack('>3B', sgpd_data[1:4])
     grouping_type = struct.unpack('>4s', sgpd_data[4:8])[0]
@@ -245,7 +243,7 @@ def parse_sgpd_atom(sgpd_data, atom_info, track_id): # Sample Group Description(
         atom_info[f'roll distance[{i}]_{track_id}'] = roll_distance
         offset += 2
 
-def parse_sbgp_atom(sbgp_data, atom_info, track_id): # Sample To Group
+def parse_sbgp_atom(sbgp_data, atom_info, track_id):
     version = struct.unpack('>B', sbgp_data[0:1])[0]
     flags = struct.unpack('>3B', sbgp_data[1:4])
     grouping_type = struct.unpack('>4s', sbgp_data[4:8])[0]

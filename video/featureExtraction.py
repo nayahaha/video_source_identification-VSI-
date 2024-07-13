@@ -65,7 +65,7 @@ def videoParsing(video_path, AtomDict, boxSequence):   # return codec
                     get_moov_tag(video_file, AtomType, AtomSize, atom_info)
                 elif AtomType == 'moof':
                     get_moof_tag(video_file, AtomType, AtomSize, atom_info)       
-                else:   # beam, free, atomSize가 4바이트로 표현되는 mdat
+                else:
                     LabelsValue = video_file.read(AtomSize - 8)  # Subtract 8 bytes for size and type fields
                 
                 AtomDict[atom_info['type']] = atom_info
@@ -108,16 +108,16 @@ def featureExtraction(video_path, AtomDict, codec_check, boxSequence):
 
     # overall_bitrate parsing
     # (filesize * 8) / (duration * timescale)
-    filesize = os.path.getsize(video_path)  # 파일 크기
+    filesize = os.path.getsize(video_path)
     mvhd_duration = AtomDict['moov']['mvhd'].get(f"mvhd_duration")
     mvhd_timescale = AtomDict['moov']['mvhd'].get(f"mvhd_timeScale")
-    duration = mvhd_duration / mvhd_timescale   # 동영상 재생 시간
+    duration = mvhd_duration / mvhd_timescale
     overall_bitrate = (filesize * 8 / duration) * 0.001
     overall_bitrate = round(overall_bitrate)
 
     # video_id, audio_id parsing
-    # video id - moov/trak/mdia/hdlr/@component_subtype=vide 인 track id
-    # audio id - moov/trak/mdia/hdlr/@component_subtype=soun 인 track id
+    # video id - moov/trak/mdia/hdlr/@component_subtype=vide track id
+    # audio id - moov/trak/mdia/hdlr/@component_subtype=soun track id
     track_id = [1, 2, 256, 512]
     audio_id = 0
     for i in track_id:
@@ -129,7 +129,7 @@ def featureExtraction(video_path, AtomDict, codec_check, boxSequence):
                 audio_id = i
         except KeyError:
             continue
-    if audio_id == 0:   # 음소거 영상
+    if audio_id == 0:
         audio_id = -1
 
     # video_bitrate parsing
@@ -300,7 +300,3 @@ def getNALU(AtomDict, codec_check):
         return vps_rbsp, sps_rbsp, pps_rbsp
 
 
-# Usage
-# video_path = sys.argv[1]
-# codec_check = videoParsing(video_path, AtomDict)
-# featureExtraction(video_path, AtomDict, codec_check)

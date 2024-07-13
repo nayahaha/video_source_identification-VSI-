@@ -1,28 +1,3 @@
-# h26x-video.py
-#
-# The MIT License (MIT)
-#
-# Copyright (c) 2017 Werner Robitza
-#
-# Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be included
-# in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS":None, WITHOUT WARRANTY OF ANY KIND, EXPRESS
-# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.>
-
 import os
 import sys
 import struct
@@ -30,29 +5,15 @@ import struct
 from bitstring import BitStream
 
 def remove_epb(nal_unit):
-    """
-    NAL 단위에서 모든 EPB(Emulation Prevention Byte) 제거
-
-    Args:
-        nal_unit: 바이트 시퀀스 (bytes)
-
-    Returns:
-        EPB가 제거된 바이트 시퀀스 (bytes)
-    """
-
-    # 제거된 바이트 시퀀스 초기화
     removed_nal_unit = bytearray()
 
-    # 바이트 시퀀스를 순회하면서 EPB 제거
     i = 0
     while i < len(nal_unit):
         if i < len(nal_unit) - 2 and nal_unit[i] == 0x00 and nal_unit[i + 1] == 0x00 and nal_unit[i + 2] == 0x03:
-            # EPB를 발견한 경우 0x03을 제거하고 다음 위치로 이동
             removed_nal_unit.append(nal_unit[i])
             removed_nal_unit.append(nal_unit[i + 1])
             i += 3
         else:
-            # EPB가 아닌 경우 바이트를 그대로 추가하고 다음 위치로 이동
             removed_nal_unit.append(nal_unit[i])
             i += 1
 
@@ -354,7 +315,7 @@ class h264_SPS:
 
     def get_formatProfile(self):
         temp = self.order["level_idc"] * 0.1
-        level_idc = round(temp,2) # profile level (소수점 자리수 지정)
+        level_idc = round(temp,2)
 
         if self.order["profile_idc"] == 66 and self.order["constraint_set1_flag"] == 0:
             profile = f'Baseline L{level_idc}'
@@ -458,9 +419,8 @@ class h264_PPS:
         self.order["constrained_intra_pred_flag"] = self.s.read("uint:1")
         self.order["redundant_pic_cnt_present_flag"] = self.s.read("uint:1")
         while self.s.pos < self.s.len:
-                self.order["transform_8x8_mode_flag"] = self.s.read("uint:1")
-                self.order["pic_scaling_matrix_present_flag"] = self.s.read("uint:1")
-                #if self.order["pic_scaling_matrix_present_flag"]: TODO
+            self.order["transform_8x8_mode_flag"] = self.s.read("uint:1")
+            self.order["pic_scaling_matrix_present_flag"] = self.s.read("uint:1")
                     
 class h265_HRD:
     def __init__(self, rbsp_bytes, commonInfPresentFlag, maxNumSubLayersMinus1):
@@ -1235,23 +1195,6 @@ class h265_SPS:
                     self.order["palette_max_size"] = self.s.read("ue")
                     self.order["delta_palette_max_predictor_size"] = self.s.read("ue")
                     self.order["sps_palette_predictor_initializers_present_flag"] = self.s.read("uint:1")
-                    # if self.order["sps_palette_predictor_initializers_present_flag"]:
-                    #     self.order["sps_palette_predictor_initializer"] = [[]]
-                    #     self.order["sps_num_palette_predictor_initializers_minus1"] = self.s.read("ue")
-                    #     if self.order["chroma_format_idc"] == 0:
-                    #         numComps = 1
-                    #     else:
-                    #         numComps = 3
-                        
-                    #     rows = numComps
-                    #     cols = self.order["sps_num_palette_predictor_initializers_minus1"]
-                    #     self.order["sps_palette_predictor_initializer"] = [[] for _ in range(rows)]
-                    #     for row in self.sub_layer_profile_compatibility_flag:
-                    #         row.extend([0] * cols)
-
-                    #     for comp in range(numComps):
-                    #         for i in range(self.order["sps_num_palette_predictor_initializers_minus1"] + 1):
-                    #             self.order["sps_palette_predictor_initializer"][comp][i] = self.s.read("")
                     self.order["motion_vector_resolution_control_idc"] = self.s.read("uint:2")
                     self.order["intra_boundary_filtering_disabled_flag"] = self.s.read("uint:1")
             if self.order["sps_extension_4bits"]:
@@ -1293,8 +1236,6 @@ class h265_SPS:
                         nextCoef = (nextCoef + self.order["scaling_list_delta_coef"] + 256) % 256
                         ScalingList.append = nextCoef
 
-# https://github.com/MediaArea/MediaInfoLib/blob/master/Source/MediaInfo/Video/File_Hevc.cpp#L40
-# Profile+=__T('L')+Ztring().From_Number(((float)p.level_idc)/30, (p.level_idc%10)?1:0);
     def get_formatProfile(self):
         if self.order["general_profile_space"] == 0:
             if self.order["general_profile_idc"] == 1:
@@ -1615,9 +1556,7 @@ class h265_PPS:
                                 for j in range(depthMaxValue + 1):
                                     self.order["dlt_value_flag"][i][j] = self.s.read("uint:1")
                             else:
-                                self.order["delta_dlt"](i)   # TODO
-            # if self.order["pps_scc_extension_flag"]:
-            #     pps_scc_extension()   # TODO
+                                self.order["delta_dlt"](i)
             if self.order["pps_extension_4bits"]:
                 while(self.s):
                     self.order["pps_extension_data_flag"] = self.s.read("uint:1")
@@ -1675,7 +1614,6 @@ class h265_PPS:
         if self.order["cm_octant_depth"] == 1:
             self.order["cm_adapt_threshold_u_delta"] = self.s.read("se")
             self.order["cm_adapt_threshold_v_delta"] = self.s.read("se")
-        # colour_mapping_octants() # TODO
     
     def delta_dlt(self, i):
         length = self.order["pps_bit_depth_for_depth_layers_minus8"] + 8
@@ -1683,5 +1621,3 @@ class h265_PPS:
         if self.order["num_val_delta_dlt"] > 0:
             if self.order["num_val_delta_dlt"] > 1:
                 self.order["max_diff"] = self.s.read(f"{length}")
-            # if self.num_val_delta_dlt > 2 and self.max_diff > 0:
-                # self.min_diff_minus1 = # TODO

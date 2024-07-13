@@ -12,8 +12,6 @@ def get_moov_tag(video_file, AtomType, moovAtomSize, atom_info):
         AtomSize, AtomType = struct.unpack('>I4s', atom_header)
         AtomType = AtomType.decode('utf-8')
 
-        #print(f"    Sub-Atom Type: {AtomType}, Sub-Atom Size: {AtomSize}")
-
         if AtomType == 'mvhd':
             #moov_info['type'] = AtomType
             mvhd_info['type'] = AtomType
@@ -67,7 +65,7 @@ def get_moov_tag(video_file, AtomType, moovAtomSize, atom_info):
             mvhd_info['mvhd_nextTrackID'] = mvhd_nextTrackID
             atom_info[mvhd_info['type']] = mvhd_info
             #atom_info[moov_info['type']]=mvhd_info
-            moovAtomSize -= 8 # moov atom의 size + type (8bytes) 제외
+            moovAtomSize -= 8
         elif AtomType == 'trak':
             tkhd_info = {}
 
@@ -166,7 +164,6 @@ def get_moov_tag(video_file, AtomType, moovAtomSize, atom_info):
                         atom_type = f'{atom_type}_{track_id}'
                         elst_size, elst_type = struct.unpack('>I4s', data[0:8])
                         elst_type = elst_type.decode('utf-8')
-                        #print(f"            Sub-Atom Type: {elst_type}, Sub-Atom Size: {elst_size}")
 
                         elst_version = struct.unpack('>B', data[8:9])[0]
                         elst_flags = struct.unpack('>3B', data[9:12])
@@ -220,8 +217,6 @@ def get_moov_tag(video_file, AtomType, moovAtomSize, atom_info):
                         mdia_info['type'] = atom_type
                         mdia_info['size'] = atom_size
 
-                        #atom_info[f'{atom_type}_{track_id}'] = atom_type
-                        #offset = 8
                         offset = 0
                         mdia_relativeOrder = 1
                         while offset < len(data):
@@ -327,7 +322,7 @@ def get_moov_tag(video_file, AtomType, moovAtomSize, atom_info):
                         parse_meta_atom(udta_data[offset:offset+atom_size], meta_info)
                         udta_info[meta_info['type']] = meta_info
                     
-                    elif atom_type == 'exvr':   # 사용자 정의 확장 메타데이터를 나타내는 Atom, 사용자가 원하는 데이터를 저장하기 위해 사용될 수 있음
+                    elif atom_type == 'exvr':
                         exvr_info['type'] = atom_type
                         exvr_info['size'] = atom_size
                         udta_data = udta_data.decode('utf-8', errors='ignore')

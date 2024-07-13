@@ -29,14 +29,14 @@ def parse_mdhd_atom(mdhd_data, mdhd_info, track_id):
     mdhd_info[f'language_{track_id}'] = language
     mdhd_info[f'quality_{track_id}'] = quality
 
-def parse_hdlr_atom_in_trak(hdlr_data, hdlr_atom_size, hdlr_info, track_id): # atom size는 헤더 길이를 제외한 길이
+def parse_hdlr_atom_in_trak(hdlr_data, hdlr_atom_size, hdlr_info, track_id):
     version = struct.unpack('>B', hdlr_data[0:1])[0]
     flags = struct.unpack('>3B', hdlr_data[1:4])
     component_type = hdlr_data[4:8].decode('utf-8')
     component_subtype = hdlr_data[8:12].decode('utf-8')
     component_manufacturer = hdlr_data[12:16].decode('utf-8', errors = 'ignore')
     component_flags_mask = struct.unpack('>I', hdlr_data[16:20])[0]
-    component_name_length = hdlr_atom_size - 20 # component flags mask 뒤로는 010 Editor에서 분석 못함 (010 Editor에서는 rest field로 처리), 하지만 MP4 Box 도구에서는 component name field로 분석함
+    component_name_length = hdlr_atom_size - 20
     component_name = hdlr_data[20:20 + component_name_length].decode('utf-8')
     component_name = component_name.replace('\u0000','')
     component_name = component_name.replace('\u0010','')
@@ -59,9 +59,7 @@ def parse_minf_atom(minf_data, minf_info, track_id):
     while offset < len(minf_data):
         minf_subAtom_size, minf_subAtom_type = struct.unpack('>I4s', minf_data[offset:offset+8])
         minf_subAtom_type = minf_subAtom_type.decode('utf-8')
-        #print(f"                Sub-Atom Type: {minf_subAtom_type}, Sub-Atom Size: {minf_subAtom_size}")
-        
-        #atom_info[f'{minf_subAtom_type}_{track_id}'] = minf_subAtom_type
+
         if minf_subAtom_type == 'vmhd':
             minf_subAtom_type = f"{minf_subAtom_type}_{track_id}"
             vmhd_info['type'] = minf_subAtom_type
@@ -97,17 +95,14 @@ def parse_minf_atom(minf_data, minf_info, track_id):
 
         offset += minf_subAtom_size
 
-def parse_hdlr_atom(hdlr_data, hdlr_atom_size, hdlr_info):  # trak atom 밖에 있는 경우(track_id 사용 x)
+def parse_hdlr_atom(hdlr_data, hdlr_atom_size, hdlr_info):
     version = struct.unpack('>B', hdlr_data[0:1])[0]
     flags = struct.unpack('>3B', hdlr_data[1:4])
     component_type = hdlr_data[4:8].decode('utf-8')
-    #component_type = struct.unpack('>I', hdlr_data[4:8])[0]
     component_subtype = hdlr_data[8:12].decode('utf-8')
     component_manufacturer = hdlr_data[12:16].decode('utf-8', errors = 'ignore')
-    #component_manufacturer = struct.unpack('>I', hdlr_data[12:16])[0]
-    #component_manufacturer = component_manufacturer.decode('utf-8')
     component_flags_mask = struct.unpack('>I', hdlr_data[16:20])[0]
-    component_name_length = hdlr_atom_size - 20 # component flags mask 뒤로는 010 Editor에서 분석 못함 (010 Editor에서는 rest field로 처리), 하지만 MP4 Box 도구에서는 component name field로 분석함
+    component_name_length = hdlr_atom_size - 20
     component_name = hdlr_data[20:20 + component_name_length].decode('utf-8')
 
     hdlr_info[f'version'] = version

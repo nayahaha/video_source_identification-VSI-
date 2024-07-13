@@ -69,7 +69,7 @@ def parse_dref_atom(dref_data, dref_info, track_id):
     dref_info[f'entry_count_{track_id}'] = entry_count
 
     offset = 8
-    for _ in range(entry_count):    # 010 Editor dref atom 분석 못함 -> MP4 Box 참고하여 분석
+    for _ in range(entry_count):
         size = struct.unpack('>I', dref_data[offset:offset+4])[0]
         entry_type = struct.unpack('>4s', dref_data[offset+4:offset+8])[0].decode('utf-8')
         entry_version = struct.unpack('>B', dref_data[offset+8:offset+9])[0]
