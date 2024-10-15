@@ -138,13 +138,26 @@ def main(file_path):
     df = featureExtraction(video_path, AtomDict, codec_check, boxSequence)
     x_data = preprocessing(df, features)
 
-    predictions = classify_source(x_data, model)
+    # predictions = classify_source(x_data, model)
+    #
+    # for idx, prediction in enumerate(predictions):
+    #     source_class = LABELS[prediction]
+    #     print(f"{file_name} -> Video predicted class: {source_class}")
 
+    predictions = classify_source_probability(x_data, model, LABELS)[0]
+    source_class = None
+    percent = 0
     for idx, prediction in enumerate(predictions):
-        source_class = LABELS[prediction]
-        print(f"{file_name} -> Video predicted class: {source_class}")
+        if percent == 0:
+            source_class = prediction[0]
+            percent = prediction[1]
+        elif percent < prediction[1]:
+            source_class = prediction[0]
+            percent = prediction[1]
 
-    return source_class
+    print(f"{file_name} -> Video predicted class: {source_class}, {percent}")
+
+    return source_class, percent
 
 if __name__ == "__main__":
     main()

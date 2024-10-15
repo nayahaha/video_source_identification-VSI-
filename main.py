@@ -30,7 +30,8 @@ class AnalysisThread(QtCore.QThread):
                     self.progressUpdated.emit(int(count / total_files * 100))
                     full_path = os.path.join(root, file).replace('/', os.sep)
                     try:
-                        result_class = main(full_path)
+                        result_class, percent = main(full_path)
+                        percent = str(float(percent) * float(100)) + '%'
                     except Exception as e:
                         print(str(e))
                         continue
@@ -39,6 +40,7 @@ class AnalysisThread(QtCore.QThread):
                     emit_data = list()
                     emit_data.append(full_path)
                     emit_data.append(app_name)
+                    emit_data.append(percent)
 
                     self.tableUpdated.emit(emit_data)
 
@@ -55,12 +57,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.progressBar = self.findChild(QtWidgets.QProgressBar, 'progressBar')
         self.progressBar.setValue(0)
         self.resultsTable = self.findChild(QtWidgets.QTableWidget, 'tableWidget')
-        self.resultsTable.setColumnCount(3)
-        self.resultsTable.setHorizontalHeaderLabels(['Filename', 'Application', 'Icon'])
+        self.resultsTable.setColumnCount(4)
+        self.resultsTable.setHorizontalHeaderLabels(['Filename', 'Application', 'Icon', 'Probability'])
 
         self.resultsTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
         self.resultsTable.setColumnWidth(1, 100)
         self.resultsTable.setColumnWidth(2, 30)
+        self.resultsTable.setColumnWidth(4, 20)
 
         self.resultsTable.verticalHeader().setDefaultSectionSize(30)
 
@@ -88,6 +91,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def add_table_row(self, emit_data):
         filename = emit_data[0]
         text = emit_data[1]
+        probability = emit_data[2]
 
         row_position = self.resultsTable.rowCount()
         self.resultsTable.insertRow(row_position)
@@ -105,6 +109,10 @@ class MainWindow(QtWidgets.QMainWindow):
         pixmap = QPixmap(f'{BASE_DIR + os.sep}icon{os.sep+text}.png'.format(text))
         label.setPixmap(pixmap.scaled(30, 30, QtCore.Qt.KeepAspectRatio))
         self.resultsTable.setCellWidget(row_position, 2, label)
+
+        percent_item = QTableWidgetItem(probability)
+        percent_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        self.resultsTable.setItem(row_position, 3, percent_item)
 
 
 if __name__ == "__main__":
