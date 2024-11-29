@@ -215,33 +215,36 @@ def parse_sgpd_atom(sgpd_data, atom_info, track_id):
     grouping_type = struct.unpack('>4s', sgpd_data[4:8])[0]
     grouping_type = grouping_type.decode('utf-8')
 
-    atom_info[f'version_{track_id}'] = version
-    atom_info[f'flags_{track_id}'] = flags
-    atom_info[f'grouping_type_{track_id}'] = grouping_type
+    atom_info[f'version_{grouping_type}_{track_id}'] = version
+    atom_info[f'flags_{grouping_type}_{track_id}'] = flags
+    atom_info[f'grouping_type_{grouping_type}_{track_id}'] = grouping_type
 
-    if version == 1:
-        default_length = struct.unpack('>I', sgpd_data[8:12])[0]
-        atom_info[f'default length_{track_id}'] = default_length
-    elif version >= 2:
-        default_sample_description_index = struct.unpack('>I', sgpd_data[8:12])[0]
-        atom_info[f'default sample description index_{track_id}'] = default_sample_description_index
-    
-    entry_count = struct.unpack('>I', sgpd_data[12:16])[0]
-    offset = 16
-    atom_info[f'entry_count_{track_id}'] = entry_count
-
-    for i in range(entry_count):
+    if grouping_type == 'roll':
         if version == 1:
-            if default_length == 0:
-                description_length = struct.unpack('>I', sgpd_data[offset:offset+4])[0]
-                roll_distance = struct.unpack('>i', sgpd_data[offset+4:offset+6])[0]
-                atom_info[f'description length[{i}]_{track_id}'] = description_length
-                offset += 6
-                continue
+            default_length = struct.unpack('>I', sgpd_data[8:12])[0]
+            atom_info[f'default length_{grouping_type}_{track_id}'] = default_length
+        elif version >= 2:
+            default_sample_description_index = struct.unpack('>I', sgpd_data[8:12])[0]
+            atom_info[f'default sample description index_{grouping_type}_{track_id}'] = default_sample_description_index
+        
+        entry_count = struct.unpack('>I', sgpd_data[12:16])[0]
+        offset = 16
+        atom_info[f'entry_count_{grouping_type}_{track_id}'] = entry_count
 
-        roll_distance = struct.unpack('>h', sgpd_data[offset:offset+2])[0]
-        atom_info[f'roll distance[{i}]_{track_id}'] = roll_distance
-        offset += 2
+        for i in range(entry_count):
+            if version == 1:
+                if default_length == 0:
+                    description_length = struct.unpack('>I', sgpd_data[offset:offset+4])[0]
+                    roll_distance = struct.unpack('>i', sgpd_data[offset+4:offset+6])[0]
+                    atom_info[f'description length[{i}]_{grouping_type}_{track_id}'] = description_length
+                    offset += 6
+                    continue
+
+            roll_distance = struct.unpack('>h', sgpd_data[offset:offset+2])[0]
+            atom_info[f'roll distance[{i}]_{grouping_type}_{track_id}'] = roll_distance
+            offset += 2
+    else:   # grouping_type - sync, tscl
+        pass    # TODO need to understand the structure
 
 def parse_sbgp_atom(sbgp_data, atom_info, track_id):
     version = struct.unpack('>B', sbgp_data[0:1])[0]

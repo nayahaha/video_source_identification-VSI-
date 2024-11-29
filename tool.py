@@ -144,6 +144,26 @@ def main(file_path):
     #     source_class = LABELS[prediction]
     #     print(f"{file_name} -> Video predicted class: {source_class}")
 
+    try:    # moov/meta box 
+        if "keys" in AtomDict['moov']['meta']:
+            for i in range(AtomDict['moov']['meta']['keys']['entry_count']):
+                if b'apple' in AtomDict['moov']['meta']['keys'][f'key_value[{i}]']: # Original video taken with an iPhone
+                    percent = 1
+                    source_class = "Original_iOS"
+
+                    return source_class, percent
+    except KeyError:
+        pass
+    
+    try:    # moov/udta/smrd box
+        if AtomDict['moov']['udta']['smrd'].get('smrd_value') == b'TRUEBLUE' and AtomDict['moov']['udta']['smta']['saut']:   # Original video taken with an Android devices
+            percent = 1
+            source_class = "Original_Android"
+
+            return source_class, percent
+    except KeyError:
+        pass
+
     predictions = classify_source_probability(x_data, model, LABELS)[0]
     source_class = None
     percent = 0

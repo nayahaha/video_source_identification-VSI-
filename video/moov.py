@@ -2,7 +2,7 @@ import struct
 from video.moov_subatom import *
 
 def get_moov_tag(video_file, AtomType, moovAtomSize, atom_info):
-    moov_subAtomList = ['mvhd', 'trak', 'udta', 'iods']  # Add other Atom types if needed
+    moov_subAtomList = ['mvhd', 'trak', 'udta', 'iods', 'meta']  # Add other Atom types if needed
     trak_count = 1
     mvhd_data = None
     moov_info = {}
@@ -293,6 +293,8 @@ def get_moov_tag(video_file, AtomType, moovAtomSize, atom_info):
             exvr_info = {}
             titl_info = {}
             cprt_info = {}
+            smrd_info = {}
+            smta_info = {}
 
             udta_info['type'] = AtomType
             udta_info['size'] = AtomSize
@@ -344,6 +346,23 @@ def get_moov_tag(video_file, AtomType, moovAtomSize, atom_info):
                         copyright = copyright.replace('\u0015','')
                         cprt_info['copyright'] = copyright
                         udta_info[cprt_info['type']] = cprt_info
+                    elif atom_type == 'smrd':
+                        smrd_info['type'] = atom_type
+                        smrd_info['size'] = atom_size   
+                        smrd_info['smrd_value'] = udta_data[offset:offset+atom_size]
+                        udta_info[smrd_info['type']] = smrd_info
+                    elif atom_type == 'smta':
+                        smta_info['type'] = atom_type
+                        smta_info['size'] = atom_size
+                        if atom_size > 12: # 0x0C
+                            parse_smta_atom(udta_data[offset+4:offset+atom_size], smta_info)
+                            
+                        udta_info[smta_info['type']] = smta_info
+
+
+                        #parse_smta_atom(udta_data[offset:offset+atom_size], smta_info)
+                        #udta_info[smta_info['type']] = smta_info
+
                     else:
                         udta_info['unknown field'] = udta_data[offset:offset+atom_size]
                 else:

@@ -135,7 +135,35 @@ def parse_meta_atom(meta_data, atom_info):
             ilst_info['size'] = meta_subAtom_size
             parse_ilst_atom(meta_data[offset+8:offset+meta_subAtom_size], ilst_info)
             atom_info[ilst_info['type']] = ilst_info
+        elif meta_subAtom_type == 'keys':
+            keys_info = {}
+            keys_info['type'] = meta_subAtom_type
+            keys_info['size'] = meta_subAtom_size
+            parse_keys_atom(meta_data[offset+8:offset+meta_subAtom_size], keys_info)
+            atom_info[keys_info['type']] = keys_info
         offset += meta_subAtom_size
+def parse_keys_atom(keys_data, atom_info):
+    version = struct.unpack('>B', keys_data[0:1])[0]
+    flags = struct.unpack('>3B', keys_data[1:4])
+    entry_count = struct.unpack('>I', keys_data[4:8])[0]
+
+    atom_info['version'] = version
+    atom_info['flags'] = flags
+    atom_info['entry_count'] = entry_count
+
+    offset = 8
+    #atom_info[f'entry_count_{grouping_type}_{track_id}'] = entry_count
+
+    for i in range(entry_count):
+        key_size = struct.unpack('>I', keys_data[offset:offset+4])[0]
+        key_namespace = keys_data[offset+4:offset+8].decode('utf-8')
+        key_value = keys_data[offset+8:offset+key_size]
+
+        atom_info[f'key_size[{i}]'] = key_size
+        atom_info[f'key_namespace[{i}]'] = key_namespace
+        atom_info[f'key_value[{i}]'] = key_value
+        
+        offset += key_size
 
 def parse_ilst_atom(ilst_data, atom_info):
     ilst_info = {}
@@ -189,3 +217,20 @@ def parse_ilst_atom(ilst_data, atom_info):
 def parse_metadata_atom(metadata_data, metadata_name, atom_info):
     metadata_value = metadata_data.decode('utf-8')
     atom_info['metadata value'] = metadata_value
+
+def parse_smta_atom(smta_data, atom_info):
+    saut_info = {}
+
+    offset = 0
+    while offset < len(smta_data):
+        smta_subAtom_size, smta_subAtom_type = struct.unpack('>I4s', smta_data[offset:offset+8])
+        smta_subAtom_type = smta_subAtom_type.decode('utf-8')
+
+        if smta_subAtom_type == 'saut':
+            saut_info['type'] = smta_subAtom_type
+            saut_info['size'] = smta_subAtom_size
+            saut_info['value'] = smta_data[offset+8:offset+smta_subAtom_size]
+
+            atom_info[saut_info['type']]=saut_info
+
+        offset += smta_subAtom_size

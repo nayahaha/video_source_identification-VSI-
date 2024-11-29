@@ -875,7 +875,7 @@ class h265_VPS:
                     self.order["cprms_present_flag"][i] = self.s.read("uint:1")
                 self.order["hrd"] = h265_HRD(self.s, self.order["cprms_present_flag"][i], self.order["vps_max_sub_layers_minus1"])
         self.order["vps_extension_flag"] = self.s.read("uint:1")
-        if self.order["vps_extension_flag"]: # Todo
+        if self.order["vps_extension_flag"]: # TODO
             while(self.s):
                 self.order["vps_extension_data_flag"] = self.s.read("uint:1")
 
@@ -1564,39 +1564,32 @@ class h265_PPS:
 
     
     def scaling_list_data(self):
-        ScalingList = [[[]]]
-        rows = 4
-        cols = 6
-        self.order["scaling_list_pred_mode_flag"] = [[] for _ in range(rows)]
-        for row in self.order["scaling_list_pred_mode_flag"]:
-            row.extend([0] * cols)
-
-        self.order["scaling_list_pred_matrix_id_delta"] = [[] for _ in range(rows)]
-        for row in self.order["scaling_list_pred_matrix_id_delta"]:
-            row.extend([0] * cols)
-
-        rows = 2
-        cols = 6
-        self.order["scaling_list_dc_coef_minus8"] = [[] for _ in range(rows)]
-        for row in self.order["scaling_list_dc_coef_minus8"]:
-            row.extend([0] * cols)
+        # Initialize ScalingList: 4 x 6 x maximum coefNum(64)
+        ScalingList = [[[0 for _ in range(64)] for _ in range(6)] for _ in range(4)]
 
         for sizeId in range(4):
             matrixId = 0
             while matrixId < 6:
                 self.order[f"scaling_list_pred_mode_flag[{sizeId}][{matrixId}]"] = self.s.read("uint:1")
-                if self.order["scaling_list_pred_mode_flag"] == 0:
+
+                if self.order[f"scaling_list_pred_mode_flag[{sizeId}][{matrixId}]"] == 0:
                     self.order[f"scaling_list_pred_matrix_id_delta[{sizeId}][{matrixId}]"] = self.s.read("ue")
                 else:
                     nextCoef = 8
-                    coefNum = min(64, (1 << (4+(sizeId << 1))))
+                    coefNum = min(64, (1 << (4 + (sizeId << 1))))
+                    
                     if sizeId > 1:
-                        self.order[f"scaling_list_dc_coef_minus8[{sizeId}-2][{matrixId}]"] = self.s.read("se")
-                        nextCoef = self.order[f"scaling_list_dc_coef_minus8[{sizeId}-2][{matrixId}]"] + 8
+                        self.order[f"scaling_list_dc_coef_minus8[{sizeId-2}][{matrixId}]"] = self.s.read("se")
+                        nextCoef = self.order[f"scaling_list_dc_coef_minus8[{sizeId-2}][{matrixId}]"] + 8
+
                     for i in range(coefNum):
                         self.order["scaling_list_delta_coef"] = self.s.read("se")
                         nextCoef = (nextCoef + self.order["scaling_list_delta_coef"] + 256) % 256
-                        ScalingList.append = nextCoef
+                        ScalingList[sizeId][matrixId][i] = nextCoef
+
+                matrixId += 3 if sizeId == 3 else 1
+
+        self.order["ScalingList"] = ScalingList
     
     def colour_mapping_table(self):
         self.order["cm_ref_layer_id"] = []
